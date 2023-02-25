@@ -233,7 +233,15 @@ serviceMonitor:
   ## If true, a ServiceMonitor CRD is created for a prometheus operator
   ## https://github.com/coreos/prometheus-operator for each target
   ##
-  enabled: false
+  enabled: true
+  defaults:
+    labels:
+      release: prometheus
+  targets:
+    - name: google.com
+      url: https://google.com
+    - name: nginx-test
+      url: nginx-service.test-ns.svc.cluster.local:80
 
   # Default values that will be used for all ServiceMonitors created by `targets`
   defaults:
@@ -264,10 +272,18 @@ serviceMonitor:
 ## Custom PrometheusRules to be defined
 ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
 prometheusRule:
-  enabled: false
+  enabled: true
   additionalLabels: {}
   namespace: ""
-  rules: []
+  rules:
+  - alert: BlackboxProbeFailed
+    expr: probe_success == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Blackbox probe failed (instance {{ $labels.instance }})
+      description: "Probe failed\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
 ## Network policy for chart
 networkPolicy:
